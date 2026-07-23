@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Input Invoice & Rencana Antar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --ink:#0E2A3E; --ink-2:#173B54; --surface:#F5F6F3; --surface-2:#FFFFFF;
+  --line:#DEE3DF; --muted:#5E6E71; --go:#1F8A4C; --go-dark:#186B3B;
+  --live:#FF8A1E; --danger:#C64B3C;
+  --v1:#1F77B4; --v2:#E07B39; --v3:#2E9E56; --v4:#B03A5B;
+  --radius:14px; --font-display:'Space Grotesk',system-ui,sans-serif; --font-body:'Inter',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--font-body);background:var(--surface);color:var(--ink);}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 80px;}
+header{margin-bottom:18px;}
+header h1{font-family:var(--font-display);font-size:20px;margin:0 0 4px;}
+header p{margin:0;color:var(--muted);font-size:13px;}
+.card{background:var(--surface-2);border-radius:var(--radius);padding:18px;margin-bottom:16px;box-shadow:0 2px 10px rgba(14,42,62,0.08);}
+.card h2{font-family:var(--font-display);font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px;}
+.badge{background:var(--surface);color:var(--ink-2);font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;}
+input[type=text],input[type=number]{
+  width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 12px;font-size:14px;font-family:var(--font-body);
+  outline:none;background:var(--surface);color:var(--ink);
+}
+input:focus{border-color:var(--ink-2);}
+.row{display:flex;gap:10px;margin-bottom:12px;}
+.row > div{flex:1;}
+.autocomplete{position:relative;}
+#outletResults{
+  position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface-2);
+  border-radius:10px;box-shadow:0 6px 20px rgba(14,42,62,0.22);max-height:230px;overflow-y:auto;z-index:50;display:none;
+}
+.oresult{padding:10px 12px;border-bottom:1px solid var(--surface);cursor:pointer;font-size:13px;}
+.oresult:hover, .oresult.active{background:var(--surface);}
+.oresult .rn{font-weight:700;}
+.oresult .rc{color:var(--muted);font-size:11px;}
+#selectedOutlet{
+  display:none;background:var(--surface);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:13px;
+  border:1.5px solid var(--go);
+}
+#selectedOutlet .name{font-weight:700;}
+#selectedOutlet .meta{color:var(--muted);font-size:11.5px;margin-top:2px;}
+.btn{
+  border:none;border-radius:10px;padding:11px 18px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:var(--font-body);
+}
+.btn-primary{background:var(--ink-2);color:#fff;width:100%;}
+.btn-primary:disabled{background:#B7C0C7;cursor:not-allowed;}
+.btn-go{background:var(--go);color:#fff;width:100%;}
+.btn-outline{background:var(--surface);color:var(--ink-2);width:100%;}
+.btn-danger{background:var(--surface);color:var(--danger);width:100%;}
+.btn-row{display:flex;gap:10px;}
+.btn-row .btn{flex:1;}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+th{text-align:left;color:var(--muted);font-weight:700;font-size:11px;padding:6px 8px;border-bottom:1.5px solid var(--line);}
+td{padding:8px;border-bottom:1px solid var(--surface);vertical-align:middle;}
+td.num{text-align:right;font-variant-numeric:tabular-nums;}
+.rm{border:none;background:none;color:var(--danger);cursor:pointer;font-size:14px;padding:2px 6px;}
+.empty-row{color:var(--muted);text-align:center;padding:16px;font-size:12.5px;}
+
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+@media (max-width:560px){.vgrid{grid-template-columns:1fr;}}
+.vcard{border-radius:12px;padding:13px;color:#fff;}
+.vcard.v1{background:var(--v1);} .vcard.v2{background:var(--v2);} .vcard.v3{background:var(--v3);} .vcard.v4{background:var(--v4);}
+.vcard .vh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+.vcard .vname{font-family:var(--font-display);font-weight:700;font-size:14px;}
+.vcard .vtotal{font-weight:700;font-size:14px;}
+.vcard .vpct{font-size:11px;opacity:0.85;}
+.vstop{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.22);}
+.vstop select{font-size:10.5px;border-radius:6px;border:none;padding:2px 4px;}
+
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;font-size:12.5px;font-weight:600;z-index:999;transition:transform .25s;box-shadow:0 4px 16px rgba(0,0,0,0.3);}
+#toast.show{transform:translateX(-50%) translateY(0);}
+.hint{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.5;}
+.hint b{color:var(--ink-2);}
+.divider{height:1px;background:var(--line);margin:14px 0;}
+
+.upload-zone{
+  border:2px dashed var(--line);border-radius:12px;padding:20px 14px;text-align:center;cursor:pointer;
+  transition:border-color .15s, background .15s;
+}
+.upload-zone:hover, .upload-zone.drag{border-color:var(--go);background:#F1F8F3;}
+.upload-zone input{display:none;}
+.upload-zone .icon{font-size:26px;margin-bottom:6px;}
+.upload-zone .main{font-weight:700;font-size:13.5px;}
+.upload-zone .sub{font-size:11.5px;color:var(--muted);margin-top:3px;}
+
+.summary-box{border-radius:10px;padding:12px 14px;margin-top:12px;font-size:12.5px;line-height:1.7;}
+.summary-ok{background:#EAF7EE;color:var(--go-dark);}
+.summary-warn{background:#FDF3E7;color:#8A5A16;}
+.summary-box b{font-weight:700;}
+.summary-list{max-height:100px;overflow-y:auto;font-size:11px;margin-top:4px;word-break:break-all;}
+
+.gh-row{display:flex;gap:10px;margin-bottom:10px;}
+.gh-row > div{flex:1;}
+.token-wrap{position:relative;}
+.token-wrap input{padding-right:40px;}
+.token-toggle{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);border:none;background:none;
+  color:var(--muted);cursor:pointer;font-size:15px;padding:4px 6px;
+}
+details.gh-help{margin:10px 0 14px;border:1px solid var(--line);border-radius:10px;padding:2px 12px;}
+details.gh-help summary{cursor:pointer;font-weight:700;font-size:12.5px;padding:9px 0;color:var(--ink-2);}
+details.gh-help ol{margin:0 0 10px;padding-left:18px;font-size:12px;line-height:1.8;color:var(--muted);}
+details.gh-help code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:11px;}
+.publish-status{font-size:12.5px;font-weight:600;margin-top:10px;padding:10px 12px;border-radius:9px;display:none;}
+.publish-status.show{display:block;}
+.publish-status.wait{background:#FDF3E7;color:#8A5A16;}
+.publish-status.ok{background:#EAF7EE;color:var(--go-dark);}
+.publish-status.err{background:#FCEAE7;color:var(--danger);}
+.token-warning{font-size:11px;color:var(--danger);margin-top:4px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🧾 Input Invoice & Rencana Antar</h1>
+    <p>Catat invoice yang diantar hari ini, upload data invoice untuk rencana besok, lalu bagi otomatis ke 4 mobil.</p>
+  </header>
+
+  <div class="card">
+    <h2>Catat Invoice Diantar Hari Ini</h2>
+    <div class="autocomplete">
+      <label>Cari Outlet (kode CC atau nama)</label>
+      <input type="text" id="outletSearch" placeholder="Ketik kode atau nama outlet…" autocomplete="off">
+      <div id="outletResults"></div>
+    </div>
+    <div id="selectedOutlet"></div>
+    <div class="row">
+      <div>
+        <label>Nilai Invoice (Rp)</label>
+        <input type="number" id="invoiceValue" placeholder="0" min="0" step="1000">
+      </div>
+      <div>
+        <label>No. Invoice (opsional)</label>
+        <input type="text" id="invoiceNo" placeholder="INV-000123">
+      </div>
+    </div>
+    <button class="btn btn-primary" id="addBtn" disabled>+ Tambahkan ke Log Hari Ini</button>
+    <div class="divider"></div>
+    <h2 style="margin-bottom:8px;">Log Hari Ini <span class="badge" id="countToday">0</span></h2>
+    <table><thead><tr><th>Outlet</th><th>No. Invoice</th><th class="num">Nilai</th><th></th></tr></thead>
+      <tbody id="todayBody"></tbody>
+    </table>
+    <div class="empty-row" id="todayEmpty">Belum ada invoice hari ini.</div>
+    <button class="btn btn-outline" id="exportCsvBtn" style="margin-top:10px;">⬇ Unduh Log Hari Ini (CSV)</button>
+  </div>
+
+  <div class="card">
+    <h2>Rencana Antar Besok — Upload Excel <span class="badge" id="countTomorrow">0</span></h2>
+    <div class="hint" style="margin-top:0;">Kolom yang dibutuhkan: <b>Kode Outlet</b>, <b>No Invoice</b>, <b>Nilai Invoice</b>. Kolom Kode Outlet sebaiknya diformat sebagai <b>Text</b> di Excel (bukan Number) supaya kode panjang tidak berubah/kepotong.</div>
+    <button class="btn btn-outline" id="downloadTemplateBtn" style="margin-top:10px;">⬇ Unduh Template Excel</button>
+
+    <div class="upload-zone" id="uploadZone" style="margin-top:12px;">
+      <input type="file" id="fileInput" accept=".xlsx,.xls">
+      <div class="icon">📤</div>
+      <div class="main">Klik atau tarik file Excel ke sini</div>
+      <div class="sub">Mengupload file baru akan <b>menimpa</b> rencana besok yang sudah ada</div>
+    </div>
+    <div id="uploadSummary"></div>
+
+    <div class="divider"></div>
+    <table><thead><tr><th>Outlet</th><th>No. Invoice</th><th class="num">Nilai</th><th></th></tr></thead>
+      <tbody id="tomorrowBody"></tbody>
+    </table>
+    <div class="empty-row" id="tomorrowEmpty">Belum ada rencana besok. Upload file Excel di atas.</div>
+    <div class="divider"></div>
+    <button class="btn btn-primary" id="balanceBtn">⚖️ Bagi ke 4 Mobil (Rata Nilai + Kelompok Jarak Dekat)</button>
+    <div class="hint">Outlet diurutkan dulu berdasarkan kedekatan geografis (rute menyambung, bukan acak), lalu urutan itu dipotong menjadi 4 bagian dengan total nilai invoice sedekat mungkin sama rata. Hasilnya: tiap mobil dapat area yang relatif berdekatan DAN muatan (Rp) yang seimbang. Anda tetap bisa memindah outlet ke mobil lain secara manual di bawah.</div>
+    <div class="vgrid" id="vehicleResults"></div>
+  </div>
+
+  <div class="card" id="exportCard" style="display:none;">
+    <h2>Publikasikan ke Tim</h2>
+    <div class="hint" style="margin-top:0;">Unduh file <b>rencana.json</b>, lalu upload ke repository GitHub yang sama dengan <b>index.html</b> (menimpa file lama jika sudah ada). Peta tim akan otomatis menampilkan rencana besok begitu file ini terupdate.</div>
+    <button class="btn btn-go" id="exportBtn" style="margin-top:10px;">⬇ Unduh rencana.json</button>
+
+    <div class="divider"></div>
+    <h2 style="margin-bottom:8px;">🚀 Atau Publikasikan Langsung ke GitHub</h2>
+    <div class="hint" style="margin-top:0;">Lewati langkah download-upload manual — file langsung terkirim ke repository Anda. Perlu <b>Personal Access Token</b> dari GitHub (dibuat sekali, hanya untuk repo ini). Token <b>tidak pernah disimpan</b> di file atau di perangkat ini — hanya dipakai sesaat di browser dan hilang saat halaman ditutup/di-refresh.</div>
+
+    <details class="gh-help">
+      <summary>Cara membuat token (sekali saja, ± 2 menit)</summary>
+      <ol>
+        <li>Buka <code>github.com/settings/tokens?type=beta</code>, login ke akun GitHub Anda.</li>
+        <li>Klik <b>Generate new token</b>.</li>
+        <li>Isi nama bebas, misal <code>Swikie Admin Publish</code>.</li>
+        <li>Expiration: pilih durasi singkat, misal 90 hari (lebih aman, nanti tinggal buat baru lagi).</li>
+        <li>Repository access → pilih <b>Only select repositories</b> → centang repo peta Anda saja.</li>
+        <li>Permissions → Repository permissions → cari <b>Contents</b> → ubah ke <b>Read and write</b>.</li>
+        <li>Klik <b>Generate token</b> → salin tokennya (hanya muncul satu kali!) → tempel ke kolom Token di bawah.</li>
+      </ol>
+    </details>
+
+    <div class="gh-row">
+      <div>
+        <label>Username / Organisasi GitHub</label>
+        <input type="text" id="ghOwner" placeholder="titofeanto">
+      </div>
+      <div>
+        <label>Nama Repository</label>
+        <input type="text" id="ghRepo" placeholder="Peta-Outlet-SWIKIE">
+      </div>
+    </div>
+    <label>Personal Access Token</label>
+    <div class="token-wrap">
+      <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+      <button type="button" class="token-toggle" id="tokenToggle">👁</button>
+    </div>
+    <div class="token-warning">Jangan bagikan token ini ke siapa pun — token ini seperti password khusus untuk repo Anda.</div>
+
+    <button class="btn btn-primary" id="publishBtn" style="margin-top:12px;">🚀 Publikasikan Langsung</button>
+    <div class="publish-status" id="publishStatus"></div>
+  </div>
+
+  <div class="card">
+    <button class="btn btn-danger" id="resetBtn">Hapus Semua Data (Reset)</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+let OUTLETS = [];
+let entries = JSON.parse(localStorage.getItem('swikie_entries') || '[]');
+let vehiclePlan = JSON.parse(localStorage.getItem('swikie_vehicle_plan') || 'null');
+let selectedOutlet = null;
+
+fetch('./outlets.json').then(r=>{
+  if(!r.ok) throw new Error('not found');
+  return r.json();
+}).then(data=>{
+  OUTLETS = data;
+}).catch(()=>{
+  showToast('Gagal memuat outlets.json — pastikan file ini ada di folder yang sama.');
+});
+
+/* ---------- Outlet search (log hari ini) ---------- */
+const outletSearch = document.getElementById('outletSearch');
+const outletResults = document.getElementById('outletResults');
+const selectedOutletBox = document.getElementById('selectedOutlet');
+const addBtn = document.getElementById('addBtn');
+
+outletSearch.addEventListener('input', ()=>{
+  const q = outletSearch.value.trim().toLowerCase();
+  selectedOutlet = null;
+  selectedOutletBox.style.display='none';
+  checkAddEnabled();
+  if(!q){ outletResults.style.display='none'; return; }
+  const matches = OUTLETS.filter(o=> o.n.toLowerCase().includes(q) || o.cc.includes(q)).slice(0,25);
+  if(matches.length===0){ outletResults.innerHTML='<div class="oresult">Tidak ditemukan</div>'; outletResults.style.display='block'; return; }
+  outletResults.innerHTML = matches.map(o=>
+    '<div class="oresult" data-cc="'+o.cc+'"><div class="rn">'+escapeHtml(o.n)+'</div><div class="rc">'+o.cc+' · '+escapeHtml(o.t)+'</div></div>'
+  ).join('');
+  outletResults.style.display='block';
+});
+outletResults.addEventListener('click', e=>{
+  const row = e.target.closest('.oresult');
+  if(!row || !row.dataset.cc) return;
+  selectedOutlet = OUTLETS.find(o=>o.cc===row.dataset.cc);
+  outletSearch.value = selectedOutlet.n;
+  outletResults.style.display='none';
+  selectedOutletBox.style.display='block';
+  selectedOutletBox.innerHTML = '<div class="name">'+escapeHtml(selectedOutlet.n)+'</div><div class="meta">'+selectedOutlet.cc+' · '+escapeHtml(selectedOutlet.a||'-')+', '+escapeHtml(selectedOutlet.t)+'</div>';
+  checkAddEnabled();
+});
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.autocomplete')) outletResults.style.display='none';
+});
+
+const invoiceValue = document.getElementById('invoiceValue');
+invoiceValue.addEventListener('input', checkAddEnabled);
+function checkAddEnabled(){
+  addBtn.disabled = !(selectedOutlet && Number(invoiceValue.value) > 0);
+}
+addBtn.addEventListener('click', ()=>{
+  entries.push({
+    id: Date.now()+Math.random().toString(36).slice(2,7),
+    cc: selectedOutlet.cc,
+    name: selectedOutlet.n,
+    invoice: Number(invoiceValue.value),
+    invoiceNo: document.getElementById('invoiceNo').value.trim(),
+    date: 'today',
+    mobil: null
+  });
+  saveEntries();
+  outletSearch.value=''; invoiceValue.value=''; document.getElementById('invoiceNo').value='';
+  selectedOutlet=null; selectedOutletBox.style.display='none'; addBtn.disabled=true;
+  renderTables();
+  showToast('Invoice ditambahkan ke log hari ini.');
+});
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtRp(n){ return 'Rp ' + Number(n).toLocaleString('id-ID'); }
+function saveEntries(){ localStorage.setItem('swikie_entries', JSON.stringify(entries)); }
+
+/* ---------- Render tables ---------- */
+function renderTables(){
+  const today = entries.filter(e=>e.date==='today');
+  const tomorrow = entries.filter(e=>e.date==='tomorrow');
+  document.getElementById('countToday').textContent = today.length;
+  document.getElementById('countTomorrow').textContent = tomorrow.length;
+  fillTable('todayBody','todayEmpty', today);
+  fillTable('tomorrowBody','tomorrowEmpty', tomorrow);
+}
+function fillTable(bodyId, emptyId, list){
+  const body = document.getElementById(bodyId);
+  document.getElementById(emptyId).style.display = list.length ? 'none':'block';
+  body.innerHTML = list.map(e=>
+    '<tr><td>'+escapeHtml(e.name)+'<div style="color:var(--muted);font-size:10.5px;">'+e.cc+'</div></td>'
+    +'<td>'+escapeHtml(e.invoiceNo||'-')+'</td>'
+    +'<td class="num">'+fmtRp(e.invoice)+'</td>'
+    +'<td><button class="rm" data-id="'+e.id+'">✕</button></td></tr>'
+  ).join('');
+  body.querySelectorAll('.rm').forEach(b=>b.addEventListener('click', ()=>{
+    entries = entries.filter(e=>e.id!==b.dataset.id);
+    saveEntries(); renderTables();
+  }));
+}
+renderTables();
+
+/* ---------- Excel template download ---------- */
+document.getElementById('downloadTemplateBtn').addEventListener('click', ()=>{
+  const wsData = [
+    ['Kode Outlet','No Invoice','Nilai Invoice'],
+    ['917102300301373064','INV-000123',150000],
+    ['917102100301316052','INV-000124',275000]
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols'] = [{wch:22},{wch:16},{wch:14}];
+  // force Kode Outlet column (A) to text format so long codes are not corrupted
+  ['A2','A3'].forEach(addr=>{ if(ws[addr]){ ws[addr].t='s'; ws[addr].z='@'; } });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template');
+  XLSX.writeFile(wb, 'template_invoice_besok.xlsx');
+});
+
+/* ---------- Excel upload & parse ---------- */
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+uploadZone.addEventListener('click', ()=> fileInput.click());
+['dragover','dragenter'].forEach(ev=> uploadZone.addEventListener(ev, e=>{ e.preventDefault(); uploadZone.classList.add('drag'); }));
+['dragleave','drop'].forEach(ev=> uploadZone.addEventListener(ev, e=>{ e.preventDefault(); uploadZone.classList.remove('drag'); }));
+uploadZone.addEventListener('drop', e=>{
+  if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e=>{
+  if(e.target.files.length) handleFile(e.target.files[0]);
+  fileInput.value='';
+});
+
+function normalizeKey(k){ return String(k).toLowerCase().replace(/[^a-z0-9]/g,''); }
+
+function handleFile(file){
+  if(!OUTLETS.length){ showToast('Data outlet belum termuat, coba lagi sesaat lagi.'); return; }
+  const reader = new FileReader();
+  reader.onload = evt=>{
+    try{
+      const data = new Uint8Array(evt.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {defval:'', raw:false});
+      processUploadedRows(rows);
+    }catch(err){
+      showToast('Gagal membaca file. Pastikan formatnya .xlsx sesuai template.');
+    }
+  };
+  reader.onerror = ()=> showToast('Gagal membaca file.');
+  reader.readAsArrayBuffer(file);
+}
+
+function processUploadedRows(rows){
+  const summaryBox = document.getElementById('uploadSummary');
+  if(!rows.length){
+    summaryBox.innerHTML = '<div class="summary-box summary-warn">File kosong atau tidak ada baris data.</div>';
+    return;
+  }
+  const headerKeys = Object.keys(rows[0]);
+  const findKey = patterns => headerKeys.find(h=> patterns.some(p=> normalizeKey(h).includes(p)));
+  const kCode = findKey(['kodeoutlet','kode','cc']);
+  const kInvNo = findKey(['noinvoice','invoiceno','nomorinvoice','nomor']);
+  const kValue = findKey(['nilaiinvoice','nilai','invoicevalue','value','jumlah']);
+
+  if(!kCode || !kValue){
+    summaryBox.innerHTML = '<div class="summary-box summary-warn"><b>Format kolom tidak dikenali.</b><br>Pastikan ada kolom untuk Kode Outlet dan Nilai Invoice. Gunakan tombol "Unduh Template Excel" di atas sebagai acuan.</div>';
+    return;
+  }
+
+  const parsed = [];
+  const notFound = [];
+  const invalidValue = [];
+  rows.forEach(r=>{
+    const codeRaw = String(r[kCode]||'').trim();
+    if(!codeRaw) return;
+    const outlet = OUTLETS.find(o=>o.cc===codeRaw);
+    const val = Number(String(r[kValue]).replace(/[^0-9.-]/g,''));
+    if(!outlet){ notFound.push(codeRaw); return; }
+    if(!val || val<=0){ invalidValue.push(codeRaw+' ('+escapeHtml(outlet.n)+')'); return; }
+    parsed.push({
+      id: Date.now()+Math.random().toString(36).slice(2,7),
+      cc: outlet.cc,
+      name: outlet.n,
+      invoice: val,
+      invoiceNo: kInvNo ? String(r[kInvNo]||'').trim() : '',
+      date: 'tomorrow',
+      mobil: null
+    });
+  });
+
+  // Replace all previous 'tomorrow' entries — new upload overwrites old plan
+  entries = entries.filter(e=>e.date!=='tomorrow').concat(parsed);
+  saveEntries();
+  vehiclePlan = null;
+  localStorage.removeItem('swikie_vehicle_plan');
+  document.getElementById('vehicleResults').innerHTML='';
+  document.getElementById('exportCard').style.display='none';
+  renderTables();
+
+  let html = '<div class="summary-box '+(notFound.length||invalidValue.length ? 'summary-warn':'summary-ok')+'">';
+  html += '<b>'+parsed.length+' invoice berhasil dimuat</b> dari '+rows.length+' baris.';
+  if(notFound.length){
+    html += '<br>⚠ '+notFound.length+' kode outlet tidak ditemukan di master data (dilewati):<div class="summary-list">'+notFound.slice(0,50).map(escapeHtml).join(', ')+(notFound.length>50?' … dan '+(notFound.length-50)+' lainnya':'')+'</div>';
+  }
+  if(invalidValue.length){
+    html += '<br>⚠ '+invalidValue.length+' baris nilai invoice tidak valid (dilewati):<div class="summary-list">'+invalidValue.slice(0,50).join(', ')+'</div>';
+  }
+  html += '</div>';
+  summaryBox.innerHTML = html;
+  showToast('Rencana besok diperbarui dari file Excel.');
+}
+
+/* ---------- Geo + balancing ---------- */
+function haversine(lat1,lon1,lat2,lon2){
+  const R=6371, toRad=d=>d*Math.PI/180;
+  const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1);
+  const a=Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function nearestNeighborOrder(points){
+  if(points.length<=1) return points.slice();
+  const remaining = points.slice();
+  const ordered = [remaining.shift()];
+  while(remaining.length){
+    const last = ordered[ordered.length-1];
+    let bestIdx=0, bestDist=Infinity;
+    remaining.forEach((p,i)=>{
+      const d = haversine(last.lat,last.lon,p.lat,p.lon);
+      if(d<bestDist){ bestDist=d; bestIdx=i; }
+    });
+    ordered.push(remaining.splice(bestIdx,1)[0]);
+  }
+  return ordered;
+}
+// Combined logic: order stops so nearby outlets are adjacent (proximity chain),
+// then cut that chain into 4 contiguous groups whose invoice totals are as equal as possible.
+function balanceByProximityAndValue(items, numVehicles){
+  const vehicles = Array.from({length:numVehicles}, (_,i)=>({id:i+1, name:'Mobil '+(i+1), total:0, stops:[]}));
+  if(items.length===0) return vehicles;
+  const ordered = nearestNeighborOrder(items);
+  let idx=0, remainingSum=ordered.reduce((s,e)=>s+e.invoice,0);
+  for(let v=0; v<numVehicles; v++){
+    const vehiclesLeft = numVehicles-v;
+    const target = remainingSum/vehiclesLeft;
+    let cum=0;
+    while(idx<ordered.length){
+      const point = ordered[idx];
+      const wouldBe = cum + point.invoice;
+      const pointsLeftIfTaken = ordered.length-(idx+1);
+      const mustReserveForOthers = vehiclesLeft-1;
+      if(vehicles[v].stops.length>0 && v<numVehicles-1 && pointsLeftIfTaken>=mustReserveForOthers && Math.abs(wouldBe-target) > Math.abs(cum-target)){
+        break;
+      }
+      vehicles[v].stops.push(point);
+      cum += point.invoice;
+      idx++;
+    }
+    vehicles[v].total = cum;
+    remainingSum -= cum;
+  }
+  // safety: append any leftover points to the last vehicle
+  while(idx<ordered.length){
+    const point = ordered[idx];
+    vehicles[numVehicles-1].stops.push(point);
+    vehicles[numVehicles-1].total += point.invoice;
+    idx++;
+  }
+  return vehicles;
+}
+
+document.getElementById('balanceBtn').addEventListener('click', ()=>{
+  const tomorrow = entries.filter(e=>e.date==='tomorrow');
+  if(tomorrow.length===0){ showToast('Belum ada rencana besok. Upload file Excel terlebih dahulu.'); return; }
+  const items = tomorrow.map(e=>{
+    const outlet = OUTLETS.find(o=>o.cc===e.cc);
+    return outlet ? {cc:e.cc, name:e.name, invoice:e.invoice, lat:outlet.lat, lon:outlet.lon} : null;
+  }).filter(Boolean);
+  const vehicles = balanceByProximityAndValue(items, 4);
+  vehiclePlan = vehicles.map(v=>({id:v.id, name:v.name, total:v.total, stops:v.stops.map(s=>({cc:s.cc, name:s.name, invoice:s.invoice}))}));
+  localStorage.setItem('swikie_vehicle_plan', JSON.stringify(vehiclePlan));
+  renderVehicles();
+  document.getElementById('exportCard').style.display='block';
+  showToast('Berhasil dibagi ke 4 mobil.');
+});
+
+function renderVehicles(){
+  if(!vehiclePlan) return;
+  const vColors = ['v1','v2','v3','v4'];
+  const grandTotal = vehiclePlan.reduce((s,v)=>s+v.total,0) || 1;
+  const grid = document.getElementById('vehicleResults');
+  grid.innerHTML = vehiclePlan.map((v,vi)=>{
+    const pct = Math.round(v.total/grandTotal*100);
+    const stopsHtml = v.stops.map((s,si)=>
+      '<div class="vstop"><span>'+escapeHtml(s.name)+'</span><span style="display:flex;align-items:center;gap:6px;">'
+      +fmtRp(s.invoice)
+      +'<select data-vi="'+vi+'" data-si="'+si+'" class="reassign">'
+      +[1,2,3,4].map(n=>'<option value="'+n+'" '+(n===v.id?'selected':'')+'>M'+n+'</option>').join('')
+      +'</select></span></div>'
+    ).join('');
+    return '<div class="vcard '+vColors[vi]+'"><div class="vh"><span class="vname">'+v.name+'</span><span class="vtotal">'+fmtRp(v.total)+'</span></div>'
+      +'<div class="vpct">'+v.stops.length+' outlet · '+pct+'% dari total</div>'+stopsHtml+'</div>';
+  }).join('');
+  grid.querySelectorAll('.reassign').forEach(sel=>{
+    sel.addEventListener('change', ()=>{
+      const vi = Number(sel.dataset.vi), si = Number(sel.dataset.si), newId = Number(sel.value);
+      const stop = vehiclePlan[vi].stops.splice(si,1)[0];
+      vehiclePlan[vi].total -= stop.invoice;
+      const target = vehiclePlan.find(v=>v.id===newId);
+      target.stops.push(stop);
+      target.total += stop.invoice;
+      localStorage.setItem('swikie_vehicle_plan', JSON.stringify(vehiclePlan));
+      renderVehicles();
+      showToast('Outlet dipindah ke Mobil '+newId+'.');
+    });
+  });
+}
+if(vehiclePlan){ renderVehicles(); document.getElementById('exportCard').style.display='block'; }
+
+/* ---------- Export ---------- */
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const tomorrowDate = new Date(); tomorrowDate.setDate(tomorrowDate.getDate()+1);
+  const iso = tomorrowDate.toISOString().slice(0,10);
+  const payload = {
+    tanggal_rencana: iso,
+    generated_at: new Date().toISOString(),
+    vehicles: vehiclePlan.map(v=>({id:v.id, name:v.name, total:v.total, stops:v.stops.map(s=>({cc:s.cc, invoice:s.invoice}))}))
+  };
+  downloadFile('rencana.json', JSON.stringify(payload, null, 2), 'application/json');
+  showToast('rencana.json diunduh. Upload ke GitHub untuk publikasikan.');
+});
+
+/* ---------- Direct publish to GitHub via API ---------- */
+const ghOwnerInput = document.getElementById('ghOwner');
+const ghRepoInput = document.getElementById('ghRepo');
+const ghTokenInput = document.getElementById('ghToken');
+
+// Owner/repo are not sensitive — remember them for convenience. Token is NEVER stored.
+ghOwnerInput.value = localStorage.getItem('swikie_gh_owner') || '';
+ghRepoInput.value = localStorage.getItem('swikie_gh_repo') || '';
+ghOwnerInput.addEventListener('change', ()=> localStorage.setItem('swikie_gh_owner', ghOwnerInput.value.trim()));
+ghRepoInput.addEventListener('change', ()=> localStorage.setItem('swikie_gh_repo', ghRepoInput.value.trim()));
+
+document.getElementById('tokenToggle').addEventListener('click', ()=>{
+  ghTokenInput.type = ghTokenInput.type==='password' ? 'text' : 'password';
+});
+
+function toBase64Utf8(str){
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  bytes.forEach(b=> binary += String.fromCharCode(b));
+  return btoa(binary);
+}
+
+function setPublishStatus(text, kind){
+  const el = document.getElementById('publishStatus');
+  el.textContent = text;
+  el.className = 'publish-status show ' + (kind||'');
+}
+
+document.getElementById('publishBtn').addEventListener('click', async ()=>{
+  const owner = ghOwnerInput.value.trim();
+  const repo = ghRepoInput.value.trim();
+  const token = ghTokenInput.value.trim();
+  const branch = 'main';
+  const path = 'rencana.json';
+
+  if(!vehiclePlan){ showToast('Belum ada rencana untuk dipublikasikan. Klik "Bagi ke 4 Mobil" dulu.'); return; }
+  if(!owner || !repo || !token){ showToast('Lengkapi Username, Nama Repository, dan Token terlebih dahulu.'); return; }
+
+  const publishBtn = document.getElementById('publishBtn');
+  publishBtn.disabled = true;
+  setPublishStatus('Mempublikasikan ke GitHub…', 'wait');
+
+  const tomorrowDate = new Date(); tomorrowDate.setDate(tomorrowDate.getDate()+1);
+  const iso = tomorrowDate.toISOString().slice(0,10);
+  const payload = {
+    tanggal_rencana: iso,
+    generated_at: new Date().toISOString(),
+    vehicles: vehiclePlan.map(v=>({id:v.id, name:v.name, total:v.total, stops:v.stops.map(s=>({cc:s.cc, invoice:s.invoice}))}))
+  };
+  const contentStr = JSON.stringify(payload, null, 2);
+  const apiBase = 'https://api.github.com/repos/'+encodeURIComponent(owner)+'/'+encodeURIComponent(repo)+'/contents/'+path;
+  const ghHeaders = {
+    'Authorization': 'Bearer '+token,
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+
+  try{
+    // 1. Check if file already exists to get its sha (required for updates)
+    let sha = null;
+    const getRes = await fetch(apiBase+'?ref='+branch, {headers: ghHeaders});
+    if(getRes.status===200){
+      sha = (await getRes.json()).sha;
+    } else if(getRes.status===401){
+      throw new Error('Token tidak valid atau sudah kedaluwarsa. Buat token baru.');
+    } else if(getRes.status===403){
+      throw new Error('Token tidak punya izin ke repository ini. Cek scope "Contents: Read and write".');
+    } else if(getRes.status!==404){
+      throw new Error('Gagal memeriksa file (kode '+getRes.status+').');
+    }
+
+    // 2. Create or update the file
+    const putBody = {
+      message: 'Update rencana antar '+iso+' via admin.html',
+      content: toBase64Utf8(contentStr),
+      branch: branch
+    };
+    if(sha) putBody.sha = sha;
+
+    const putRes = await fetch(apiBase, {
+      method: 'PUT',
+      headers: Object.assign({'Content-Type':'application/json'}, ghHeaders),
+      body: JSON.stringify(putBody)
+    });
+
+    if(!putRes.ok){
+      let msg = 'Gagal publikasi (kode '+putRes.status+').';
+      if(putRes.status===401) msg = 'Token tidak valid atau sudah kedaluwarsa.';
+      else if(putRes.status===403) msg = 'Token tidak punya izin menulis ke repo ini. Pastikan scope "Contents: Read and write" dicentang saat membuat token.';
+      else if(putRes.status===404) msg = 'Repository tidak ditemukan. Cek ejaan Username dan Nama Repository.';
+      else if(putRes.status===409) msg = 'Konflik versi file di server. Coba klik Publikasikan Langsung sekali lagi.';
+      else { try{ const errData = await putRes.json(); if(errData.message) msg = errData.message; }catch(e){} }
+      throw new Error(msg);
+    }
+
+    setPublishStatus('✅ Berhasil dipublikasikan ke GitHub. Tim akan melihat pembaruan di peta setelah refresh (1-2 menit).', 'ok');
+    showToast('rencana.json berhasil dipublikasikan ke GitHub!');
+  }catch(err){
+    setPublishStatus('❌ '+err.message, 'err');
+    showToast('Gagal publikasi: '+err.message);
+  } finally {
+    publishBtn.disabled = false;
+  }
+});
+
+document.getElementById('exportCsvBtn').addEventListener('click', ()=>{
+  const today = entries.filter(e=>e.date==='today');
+  let csv = 'Kode Outlet,Nama Outlet,No Invoice,Nilai Invoice\n';
+  today.forEach(e=> csv += [e.cc, '"'+e.name.replace(/"/g,'""')+'"', e.invoiceNo, e.invoice].join(',')+'\n');
+  downloadFile('log_invoice_'+new Date().toISOString().slice(0,10)+'.csv', csv, 'text/csv');
+});
+
+function downloadFile(filename, content, type){
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(!confirm('Hapus semua data invoice & rencana yang tersimpan di browser ini?')) return;
+  entries = []; vehiclePlan = null;
+  localStorage.removeItem('swikie_entries'); localStorage.removeItem('swikie_vehicle_plan');
+  renderTables();
+  document.getElementById('vehicleResults').innerHTML='';
+  document.getElementById('exportCard').style.display='none';
+  document.getElementById('uploadSummary').innerHTML='';
+  showToast('Semua data direset.');
+});
+
+/* ---------- Toast ---------- */
+let toastTimer=null;
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'), 3600);
+}
+</script>
+</body>
+</html>
