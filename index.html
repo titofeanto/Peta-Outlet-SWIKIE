@@ -130,7 +130,7 @@ function initApp(){
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
   clusterGroup=L.markerClusterGroup({maxClusterRadius:55,iconCreateFunction:c=>{const n=c.getChildCount();const sz=n>50?46:n>15?40:34;return L.divIcon({html:'<div class="marker-cluster-custom" style="width:'+sz+'px;height:'+sz+'px;">'+n+'</div>',className:'',iconSize:null});}});
-  OUTLETS.forEach(o=>{const m=L.marker([o.lat,o.lon],{icon:outletIcon()});m.outletId=o.id;markers[o.id]=m;});
+  OUTLETS.forEach(o=>{const m=L.marker([o.lat,o.lon],{icon:outletIcon()});m.bindPopup(popupHtml(o));m.outletId=o.id;markers[o.id]=m;});
   map.addLayer(clusterGroup);
   setupFilters();setupModeAndVehicles();setupSheet();setupGPS();setupRouteFab();
   if(RENCANA&&RENCANA.vehicles&&RENCANA.vehicles.length){document.getElementById('modeRow').style.display='flex';buildVehicleChips();}
