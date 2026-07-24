@@ -61,7 +61,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;}
 <select id="fVehicle"><option value="">Semua Kendaraan</option></select>
 </div>
 <div style="overflow-x:auto;max-height:500px;overflow-y:auto;">
-<table><thead><tr><th>Outlet</th><th>No Invoice</th><th class="num">Nilai</th><th>Kendaraan</th><th>Status</th><th>Waktu Kirim</th><th>Lokasi Aktual</th></tr></thead>
+<table><thead><tr><th>Outlet</th><th>No Invoice</th><th>Tgl Invoice</th><th class="num">Nilai</th><th>Kendaraan</th><th>Status</th><th>Waktu Kirim</th><th>Lokasi Aktual</th></tr></thead>
 <tbody id="detailBody"></tbody></table>
 </div>
 <div class="empty" id="detailEmpty" style="display:none;">Tidak ada data.</div>
@@ -143,7 +143,7 @@ function renderDetail(allStops){
     const statusTag=del?'<span class="tag tag-done">Terkirim</span>':'<span class="tag tag-pending">Belum</span>';
     const timeStr=del?new Date(del.delivered_at).toLocaleString('id-ID'):'-';
     const locStr=del?'<a href="https://www.google.com/maps?q='+del.lat+','+del.lon+'" target="_blank" style="color:var(--ink-2);font-size:11px;">📍 Lihat</a>':'-';
-    return'<tr><td>'+escapeHtml(name)+'<div style="color:var(--muted);font-size:10px;">'+s.cc+'</div></td><td>'+escapeHtml(s.invoiceNo||'-')+'</td><td class="num">'+fmtRp(s.invoice)+'</td><td><span class="tag tag-veh" style="background:'+(s.vehicleHex||'#555')+'">'+escapeHtml(s.vehicleName)+'</span></td><td>'+statusTag+'</td><td style="font-size:11px;">'+timeStr+'</td><td>'+locStr+'</td></tr>';
+    return'<tr><td>'+escapeHtml(name)+'<div style="color:var(--muted);font-size:10px;">'+s.cc+'</div></td><td>'+escapeHtml(s.invoiceNo||'-')+'</td><td style="font-size:11px;">'+escapeHtml(s.invoiceDate||'-')+'</td><td class="num">'+fmtRp(s.invoice)+'</td><td><span class="tag tag-veh" style="background:'+(s.vehicleHex||'#555')+'">'+escapeHtml(s.vehicleName)+'</span></td><td>'+statusTag+'</td><td style="font-size:11px;">'+timeStr+'</td><td>'+locStr+'</td></tr>';
   }).join('');
 }
 
@@ -154,11 +154,11 @@ document.getElementById('refreshBtn').addEventListener('click',loadData);
 // Export CSV
 document.getElementById('exportCsvBtn').addEventListener('click',()=>{
   if(!RENCANA)return;
-  let csv='Kode Outlet,Nama Outlet,No Invoice,Nilai Invoice,Kendaraan,Status,Waktu Kirim,Lat Aktual,Lon Aktual\n';
+  let csv='Kode Outlet,Nama Outlet,No Invoice,Tanggal Invoice,Nilai Invoice,Kendaraan,Status,Waktu Kirim,Lat Aktual,Lon Aktual\n';
   RENCANA.vehicles.forEach(v=>(v.stops||[]).forEach(s=>{
     const outlet=outletByCc[s.cc];const name=outlet?outlet.n:s.cc;
     const dk=deliveryKey(s.cc,s.invoiceNo);const del=DELIVERIES[dk];
-    csv+=[s.cc,'"'+name.replace(/"/g,'""')+'"',s.invoiceNo||'',s.invoice,v.name,del?'Terkirim':'Belum',del?del.delivered_at:'',del?del.lat:'',del?del.lon:''].join(',')+'\n';
+    csv+=[s.cc,'"'+name.replace(/"/g,'""')+'"',s.invoiceNo||'',s.invoiceDate||'',s.invoice,v.name,del?'Terkirim':'Belum',del?del.delivered_at:'',del?del.lat:'',del?del.lon:''].join(',')+'\n';
   }));
   const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='rekap_pengantaran_'+new Date().toISOString().slice(0,10)+'.csv';
