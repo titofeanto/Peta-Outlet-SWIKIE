@@ -33,6 +33,11 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;}
 .hint{font-size:11.5px;color:var(--muted);line-height:1.5;}
 .refresh-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
 .refresh-row .ts{font-size:11px;color:var(--muted);}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;font-size:12.5px;font-weight:600;z-index:999;transition:transform .25s;box-shadow:0 4px 16px rgba(0,0,0,0.3);}
+#toast.show{transform:translateX(-50%) translateY(0);}
+.refresh-row button{position:relative;transition:all .15s;}
+.refresh-row button:disabled{opacity:0.7;cursor:wait;}
+.ts.fresh{color:var(--go-dark);font-weight:700;}
 </style>
 </head>
 <body>
@@ -71,6 +76,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;}
 <button class="btn btn-outline" id="exportCsvBtn">⬇ Unduh Rekap CSV</button>
 </div>
 </div>
+<div id="toast"></div>
 
 <script>
 let RENCANA=null,DELIVERIES={},OUTLETS=[],outletByCc={};
@@ -84,11 +90,33 @@ function fmtRp(n){return'Rp '+Number(n).toLocaleString('id-ID');}
 function deliveryKey(cc,invNo){return cc+'|'+(invNo||'');}
 
 async function loadData(){
-  try{const r=await fetch('./outlets.json',{cache:'no-store'});OUTLETS=await r.json();OUTLETS.forEach(o=>{outletByCc[o.cc]=o;});}catch(e){}
-  try{const r2=await fetch('./rencana.json',{cache:'no-store'});if(r2.ok)RENCANA=await r2.json();}catch(e){}
-  try{const r3=await fetch('./deliveries.json',{cache:'no-store'});if(r3.ok){const d=await r3.json();DELIVERIES=d.reports||{};}}catch(e){}
-  document.getElementById('lastRefresh').textContent='Terakhir: '+new Date().toLocaleString('id-ID');
-  render();
+  const btn=document.getElementById('refreshBtn');
+  const tsEl=document.getElementById('lastRefresh');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Memuat…';}
+  tsEl.classList.remove('fresh');
+  try{
+    try{const r=await fetch('./outlets.json',{cache:'no-store'});OUTLETS=await r.json();OUTLETS.forEach(o=>{outletByCc[o.cc]=o;});}catch(e){}
+    try{const r2=await fetch('./rencana.json',{cache:'no-store'});if(r2.ok)RENCANA=await r2.json();}catch(e){}
+    try{const r3=await fetch('./deliveries.json',{cache:'no-store'});if(r3.ok){const d=await r3.json();DELIVERIES=d.reports||{};}}catch(e){}
+    tsEl.textContent='Terakhir: '+new Date().toLocaleString('id-ID');
+    tsEl.classList.add('fresh');
+    render();
+    if(btn){btn.textContent='✅ Diperbarui';showToast('Data berhasil diperbarui.');}
+  }catch(err){
+    if(btn){btn.textContent='⚠️ Gagal, coba lagi';}
+    showToast('Gagal memuat data: '+err.message);
+  }finally{
+    if(btn){
+      btn.disabled=false;
+      setTimeout(()=>{btn.textContent='🔄 Refresh Data';},1800);
+    }
+  }
+}
+let toastTimerDash;
+function showToast(msg){
+  const t=document.getElementById('toast');if(!t)return;
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimerDash);toastTimerDash=setTimeout(()=>t.classList.remove('show'),3200);
 }
 
 function render(){
