@@ -67,9 +67,15 @@ select.chip.active{background-color:var(--ink-2);color:#fff;background-image:url
 .pop-deliver{display:flex;align-items:center;justify-content:center;gap:6px;background:var(--live);color:#fff;text-decoration:none;font-weight:700;font-size:12.5px;padding:9px 0;border-radius:9px;cursor:pointer;border:none;width:100%;}
 .pop-deliver.done{background:#ccc;color:#666;cursor:default;}
 .pop-delivered-info{font-size:10.5px;color:var(--go-dark);margin-top:4px;text-align:center;}
+.inv-list{margin:6px 0 8px;max-height:150px;overflow-y:auto;}
+.inv-row{font-size:11.5px;padding:5px 2px;border-bottom:1px solid var(--surface);}
+.inv-row.done{color:var(--go-dark);font-weight:600;}
+.inv-row label{display:flex;align-items:center;gap:7px;cursor:pointer;}
+.inv-row input[type=checkbox]{width:15px;height:15px;flex:none;}
 .leaflet-popup-tip{display:none;}.leaflet-popup-close-button{color:#fff!important;top:8px!important;right:8px!important;}
 .marker-outlet{width:26px;height:26px;border-radius:50% 50% 50% 0;background:var(--ink-2);transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,0.35);}
 .marker-outlet.delivered{background:#999;}
+.marker-outlet.partial{background:#E6A700;}
 .live-marker{width:22px;height:22px;position:relative;}
 .live-marker .pulse{position:absolute;inset:-14px;border-radius:50%;background:rgba(255,138,30,0.35);animation:pulse 1.8s ease-out infinite;}
 .live-marker .core{position:absolute;inset:0;border-radius:50%;background:var(--live);border:3px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,0.15);}
@@ -148,60 +154,119 @@ function isDelivered(cc,invoiceNo){return!!DELIVERIES[deliveryKey(cc,invoiceNo)]
 
 function outletIcon(color){return L.divIcon({className:'',html:'<div class="marker-outlet" style="'+(color?'background:'+color:'')+'"></div>',iconSize:[26,26],iconAnchor:[13,26],popupAnchor:[0,-24]});}
 function deliveredIcon(){return L.divIcon({className:'',html:'<div class="marker-outlet delivered"></div>',iconSize:[26,26],iconAnchor:[13,26],popupAnchor:[0,-24]});}
+function partialIcon(){return L.divIcon({className:'',html:'<div class="marker-outlet partial"></div>',iconSize:[26,26],iconAnchor:[13,26],popupAnchor:[0,-24]});}
+function utf8ToB64(str){return btoa(unescape(encodeURIComponent(str)));}
+function b64ToUtf8(b64){return decodeURIComponent(escape(atob(b64)));}
 
 function popupHtml(o){
   const day=o.p||'-';
   let tags='<span class="pop-tag">'+escapeHtml(o.s||'-')+'</span><span class="pop-tag">'+escapeHtml(day)+'</span>';
-  let deliverBtn='';
-  if(o._vehicleId){
-    const veh=RENCANA.vehicles.find(v=>v.id===o._vehicleId);
-    tags='<span class="pop-tag" style="background:'+(veh?veh.hex:'#999')+';color:#fff;">'+(veh?veh.name:'Mobil ?')+'</span>';
-    if(o._invoiceNo)tags+='<span class="pop-tag">'+escapeHtml(o._invoiceNo)+'</span>';
-    if(o._invoice)tags+='<span class="pop-tag">'+fmtRp(o._invoice)+'</span>';
-    const dk=deliveryKey(o.cc,o._invoiceNo);const del=DELIVERIES[dk];
+  return'<div class="pop-body"><div class="pop-name">'+escapeHtml(o.n)+'</div><div class="pop-addr">'+escapeHtml(o.a||'-')+', '+escapeHtml(o.t)+'</div><div class="pop-tags">'+tags+'</div><a class="pop-nav" href="'+gmapsUrl(o.lat,o.lon)+'" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l9 20-9-6-9 6 9-20z" fill="#fff"/></svg> Navigasi</a></div>';
+}
+
+/* Popup for "Rencana Pengantaran" mode: groups ALL invoices belonging to one outlet
+   into a single popup with a checkbox per invoice, so nothing gets silently
+   overwritten when an outlet has more than one invoice assigned. */
+window._outletStopsRegistry={};
+function popupHtmlGrouped(o,stops){
+  const vehOf=id=>RENCANA.vehicles.find(v=>v.id===id);
+  let rows='';
+  stops.forEach((s,i)=>{
+    const del=DELIVERIES[deliveryKey(o.cc,s.invoiceNo)];
     if(del){
-      deliverBtn='<div class="pop-delivered-info">✅ Terkirim '+new Date(del.delivered_at).toLocaleString('id-ID')+'</div>';
-    }else if(ghCreds){
-      deliverBtn='<button class="pop-deliver" onclick="reportDelivery(\''+escapeHtml(o.cc)+'\',\''+escapeHtml(o._invoiceNo||'')+'\',\''+escapeHtml(o._vehicleId)+'\',this)">📍 Laporkan Terkirim</button>';
+      rows+='<div class="inv-row done">✅ '+escapeHtml(s.invoiceNo||'(tanpa no)')+' · '+fmtRp(s.invoice)+'</div>';
+    }else{
+      rows+='<div class="inv-row"><label><input type="checkbox" id="chk_'+escapeHtml(o.cc)+'_'+i+'" checked> '+escapeHtml(s.invoiceNo||'(tanpa no)')+' · '+fmtRp(s.invoice)+'</label></div>';
     }
-  }
-  return'<div class="pop-body"><div class="pop-name">'+escapeHtml(o.n)+'</div><div class="pop-addr">'+escapeHtml(o.a||'-')+', '+escapeHtml(o.t)+'</div><div class="pop-tags">'+tags+'</div><a class="pop-nav" href="'+gmapsUrl(o.lat,o.lon)+'" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l9 20-9-6-9 6 9-20z" fill="#fff"/></svg> Navigasi</a>'+deliverBtn+'</div>';
+  });
+  const allDelivered=stops.every(s=>DELIVERIES[deliveryKey(o.cc,s.invoiceNo)]);
+  const vehTags=[...new Set(stops.map(s=>s.vehicleId))].map(vid=>{const v=vehOf(vid);return'<span class="pop-tag" style="background:'+(v?v.hex:'#999')+';color:#fff;">'+(v?escapeHtml(v.name):'Mobil ?')+'</span>';}).join('');
+  let actionHtml;
+  if(allDelivered)actionHtml='<div class="pop-delivered-info">✅ Semua invoice outlet ini sudah terkirim</div>';
+  else if(ghCreds)actionHtml='<button class="pop-deliver" onclick="confirmDeliveryForOutlet(\''+escapeHtml(o.cc)+'\')">📍 Laporkan Terkirim</button>';
+  else actionHtml='';
+  return'<div class="pop-body"><div class="pop-name">'+escapeHtml(o.n)+'</div><div class="pop-addr">'+escapeHtml(o.a||'-')+', '+escapeHtml(o.t)+'</div><div class="pop-tags">'+vehTags+'</div><div class="inv-list">'+rows+'</div><a class="pop-nav" href="'+gmapsUrl(o.lat,o.lon)+'" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l9 20-9-6-9 6 9-20z" fill="#fff"/></svg> Navigasi</a>'+actionHtml+'</div>';
 }
 
 /* ===== Delivery Reporting ===== */
-window.reportDelivery=async function(cc,invoiceNo,vehicleId,btn){
+window.confirmDeliveryForOutlet=function(cc){
+  const stops=window._outletStopsRegistry[cc]||[];
+  const pending=stops.filter(s=>!DELIVERIES[deliveryKey(cc,s.invoiceNo)]);
+  if(!pending.length){showToast('Semua invoice outlet ini sudah terkirim.');return;}
+  const checked=[],unchecked=[];
+  pending.forEach((s,i)=>{
+    const cb=document.getElementById('chk_'+cc+'_'+i);
+    if(cb&&cb.checked)checked.push(s);else unchecked.push(s);
+  });
+  if(!checked.length){showToast('Pilih minimal 1 invoice untuk dilaporkan.');return;}
+  let msg;
+  if(pending.length===1){
+    msg='Tandai outlet ini sebagai terkirim?';
+  }else if(!unchecked.length){
+    msg='Tandai SEMUA '+checked.length+' invoice di outlet ini sebagai terkirim?';
+  }else{
+    msg='Anda akan menandai '+checked.length+' dari '+pending.length+' invoice sebagai TERKIRIM.\n\n'+unchecked.length+' invoice berikut akan TETAP BELUM terkirim:\n'+unchecked.map(s=>'• '+(s.invoiceNo||'(tanpa no)')+' — '+fmtRp(s.invoice)).join('\n')+'\n\nLanjutkan?';
+  }
+  if(!confirm(msg))return;
+  doReportDelivery(cc,checked);
+};
+
+async function doReportDelivery(cc,stopsToReport){
   if(!ghCreds){showToast('Link tidak mengandung token.');return;}
   if(!userLatLng){showToast('GPS belum aktif — izinkan akses lokasi dulu.');return;}
-  btn.disabled=true;btn.textContent='Mengirim…';
-  const dk=deliveryKey(cc,invoiceNo);
-  DELIVERIES[dk]={delivered_at:new Date().toISOString(),lat:userLatLng.lat,lon:userLatLng.lng,vehicle_id:vehicleId};
-  try{
-    // Fetch current deliveries.json, merge, push
-    const apiBase='https://api.github.com/repos/'+ghCreds.owner+'/'+ghCreds.repo+'/contents/deliveries.json';
-    const headers={'Authorization':'Bearer '+ghCreds.token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
-    let sha=null,existing={reports:{}};
+  showToast('Mengirim laporan…');
+  const nowIso=new Date().toISOString();
+  const newEntries={};
+  stopsToReport.forEach(s=>{newEntries[deliveryKey(cc,s.invoiceNo)]={delivered_at:nowIso,lat:userLatLng.lat,lon:userLatLng.lng,vehicle_id:s.vehicleId};});
+  const apiBase='https://api.github.com/repos/'+ghCreds.owner+'/'+ghCreds.repo+'/contents/deliveries.json';
+  const headers={'Authorization':'Bearer '+ghCreds.token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
+  const MAX_RETRY=5;
+  for(let attempt=0;attempt<MAX_RETRY;attempt++){
     try{
-      const getRes=await fetch(apiBase+'?ref=main',{headers});
-      if(getRes.status===200){const gd=await getRes.json();sha=gd.sha;existing=JSON.parse(atob(gd.content));}
-    }catch(e){}
-    existing.reports=Object.assign(existing.reports||{},DELIVERIES);
-    existing.updated_at=new Date().toISOString();
-    const content=JSON.stringify(existing,null,2);
-    const b64=btoa(unescape(encodeURIComponent(content)));
-    const putBody={message:'Delivery report: '+cc+' '+new Date().toISOString().slice(0,16),content:b64,branch:'main'};
-    if(sha)putBody.sha=sha;
-    const putRes=await fetch(apiBase,{method:'PUT',headers:Object.assign({'Content-Type':'application/json'},headers),body:JSON.stringify(putBody)});
-    if(!putRes.ok){const err=await putRes.json().catch(()=>({}));throw new Error(err.message||putRes.status);}
-    btn.textContent='✅ Terkirim!';btn.classList.add('done');
-    showToast('Laporan pengantaran berhasil dikirim.');
-    // Update marker icon
-    const outlet=outletByCc[cc];if(outlet&&markers[outlet.id])markers[outlet.id].setIcon(deliveredIcon());
-  }catch(err){
-    console.error('Delivery report failed:',err);
-    btn.disabled=false;btn.textContent='📍 Laporkan Terkirim';
-    showToast('Gagal mengirim laporan: '+err.message);
+      let sha=null,existing={reports:{}};
+      const getRes=await fetch(apiBase+'?ref=main',{headers,cache:'no-store'});
+      if(getRes.status===200){
+        const gd=await getRes.json();sha=gd.sha;
+        try{existing=JSON.parse(b64ToUtf8(gd.content));}catch(e){existing=JSON.parse(atob(gd.content));}
+      }else if(getRes.status===401){throw new Error('Token tidak valid/kedaluwarsa.');}
+      else if(getRes.status===403){throw new Error('Token tidak punya izin menulis.');}
+      else if(getRes.status!==404){throw new Error('Gagal memeriksa file ('+getRes.status+').');}
+      existing.reports=Object.assign({},existing.reports||{},newEntries);
+      existing.updated_at=nowIso;
+      const content=JSON.stringify(existing,null,2);
+      const putBody={message:'Delivery: '+cc+' ('+stopsToReport.length+' invoice) '+nowIso.slice(0,16),content:utf8ToB64(content),branch:'main'};
+      if(sha)putBody.sha=sha;
+      const putRes=await fetch(apiBase,{method:'PUT',headers:Object.assign({'Content-Type':'application/json'},headers),body:JSON.stringify(putBody)});
+      if(putRes.status===409){
+        await new Promise(r=>setTimeout(r,400+attempt*350));
+        continue; // sha changed underneath us — refetch and retry
+      }
+      if(!putRes.ok){const err=await putRes.json().catch(()=>({}));throw new Error(err.message||('kode '+putRes.status));}
+      // Success — only now do we touch local state, never before this point.
+      Object.assign(DELIVERIES,newEntries);
+      updateOutletMarker(cc);
+      showToast('✅ '+stopsToReport.length+' invoice berhasil dilaporkan terkirim.');
+      return;
+    }catch(err){
+      console.error('Delivery report failed (attempt '+(attempt+1)+'):',err);
+      if(attempt===MAX_RETRY-1){showToast('Gagal mengirim laporan: '+err.message);return;}
+    }
   }
-};
+}
+
+function updateOutletMarker(cc){
+  const outlet=outletByCc[cc];if(!outlet)return;
+  const stops=window._outletStopsRegistry[cc]||[];
+  const m=markers[outlet.id];if(!m)return;
+  const deliveredCount=stops.filter(s=>DELIVERIES[deliveryKey(cc,s.invoiceNo)]).length;
+  let icon;
+  if(!stops.length)icon=outletIcon();
+  else if(deliveredCount===0)icon=outletIcon(stops[0].vehicleHex);
+  else if(deliveredCount<stops.length)icon=partialIcon();
+  else icon=deliveredIcon();
+  m.setIcon(icon);
+  m.setPopupContent(popupHtmlGrouped(outlet,stops));
+}
 
 /* ===== Filters ===== */
 function uniqueSorted(arr){return[...new Set(arr.filter(v=>v))].sort((a,b)=>a.localeCompare(b));}
@@ -250,19 +315,34 @@ function applyFilters(){
     let stopsAll=[];
     RENCANA.vehicles.forEach(v=>{
       if(currentVehicle!=='all'&&v.id!==currentVehicle)return;
-      (v.stops||[]).forEach(s=>stopsAll.push({cc:s.cc,invoice:s.invoice,invoiceNo:s.invoiceNo,vehicleId:v.id,vehicleHex:v.hex}));
+      (v.stops||[]).forEach(s=>stopsAll.push({cc:s.cc,invoice:s.invoice,invoiceNo:s.invoiceNo,invoiceDate:s.invoiceDate,vehicleId:v.id,vehicleHex:v.hex}));
     });
+    // Group by outlet so an outlet with several invoices gets ONE marker/popup
+    // listing all of them, instead of each invoice silently overwriting the last.
+    const groups={};
+    stopsAll.forEach(s=>{(groups[s.cc]=groups[s.cc]||[]).push(s);});
     const q=(searchInput.value||'').trim().toLowerCase();
-    currentFiltered=stopsAll.map(s=>{
-      const o=outletByCc[s.cc];if(!o)return null;
-      return Object.assign({},o,{_vehicleId:s.vehicleId,_invoice:s.invoice,_invoiceNo:s.invoiceNo,_vehicleHex:s.vehicleHex});
-    }).filter(Boolean).filter(o=>!q||(o.n||'').toLowerCase().includes(q)||(o.a||'').toLowerCase().includes(q));
-    currentFiltered.forEach(o=>{
-      const m=markers[o.id];const delivered=isDelivered(o.cc,o._invoiceNo);
-      m.setIcon(delivered?deliveredIcon():outletIcon(o._vehicleHex));
-      m.setPopupContent(popupHtml(o));clusterGroup.addLayer(m);
+    const filteredCcs=Object.keys(groups).filter(cc=>{
+      const o=outletByCc[cc];if(!o)return false;
+      return!q||(o.n||'').toLowerCase().includes(q)||(o.a||'').toLowerCase().includes(q);
     });
-    document.getElementById('countBadge').textContent=currentFiltered.length+' outlet (rencana)';
+    currentFiltered=filteredCcs.flatMap(cc=>{
+      const o=outletByCc[cc];
+      return groups[cc].map(s=>Object.assign({},o,{_vehicleId:s.vehicleId,_invoice:s.invoice,_invoiceNo:s.invoiceNo,_invoiceDate:s.invoiceDate,_vehicleHex:s.vehicleHex}));
+    });
+    window._outletStopsRegistry={};
+    filteredCcs.forEach(cc=>{
+      const o=outletByCc[cc];const stops=groups[cc];
+      window._outletStopsRegistry[cc]=stops;
+      const m=markers[o.id];
+      const deliveredCount=stops.filter(s=>DELIVERIES[deliveryKey(cc,s.invoiceNo)]).length;
+      let icon;
+      if(deliveredCount===0)icon=outletIcon(stops[0].vehicleHex);
+      else if(deliveredCount<stops.length)icon=partialIcon();
+      else icon=deliveredIcon();
+      m.setIcon(icon);m.setPopupContent(popupHtmlGrouped(o,stops));clusterGroup.addLayer(m);
+    });
+    document.getElementById('countBadge').textContent=currentFiltered.length+' invoice · '+filteredCcs.length+' outlet';
   }else{
     const q=searchInput.value.trim().toLowerCase();const town=townSel.value,sales=salesSel.value,day=daySel.value;
     currentFiltered=OUTLETS.filter(o=>{
