@@ -1,244 +1,416 @@
 {
-  "tanggal_rencana": "2026-07-24",
-  "generated_at": "2026-07-23T07:53:58.581Z",
+  "tanggal_rencana": "2026-07-25",
+  "generated_at": "2026-07-24T07:45:56.423Z",
+  "harga_per_karton": 250000,
   "vehicles": [
     {
-      "id": 1,
-      "name": "Mobil 1",
-      "total": 60401512.54,
+      "id": "en",
+      "name": "Engkel",
+      "capacity": 325,
+      "hex": "#E07B39",
+      "total": 60401512.54000001,
+      "kartonUsed": 251,
       "stops": [
         {
           "cc": "917102100501264739",
-          "invoice": 5447140.69
+          "invoiceNo": "26000300061-01",
+          "invoice": 5447140.69,
+          "karton": 22,
+          "invoiceDate": ""
         },
         {
           "cc": "917102100501264739",
-          "invoice": 1937578.23
+          "invoiceNo": "26000300062-01",
+          "invoice": 1937578.23,
+          "karton": 8,
+          "invoiceDate": ""
         },
         {
           "cc": "917102100501264739",
-          "invoice": 2556156.3
+          "invoiceNo": "26000300063-01",
+          "invoice": 2556156.3,
+          "karton": 11,
+          "invoiceDate": ""
         },
         {
           "cc": "917102100501264739",
-          "invoice": 7572872.11
+          "invoiceNo": "26000300064-01",
+          "invoice": 7572872.11,
+          "karton": 31,
+          "invoiceDate": ""
         },
         {
           "cc": "917102100501264739",
-          "invoice": 1703974.82
+          "invoiceNo": "26000300065-01",
+          "invoice": 1703974.82,
+          "karton": 7,
+          "invoiceDate": ""
         },
         {
           "cc": "917102100501264739",
-          "invoice": 543384.07
+          "invoiceNo": "26000300066-01",
+          "invoice": 543384.07,
+          "karton": 3,
+          "invoiceDate": ""
         },
         {
           "cc": "917102100501264739",
-          "invoice": 2278228.29
+          "invoiceNo": "26000300067-01",
+          "invoice": 2278228.29,
+          "karton": 10,
+          "invoiceDate": ""
         },
         {
           "cc": "917102100501264739",
-          "invoice": 1608054.6
+          "invoiceNo": "26000300068-01",
+          "invoice": 1608054.6,
+          "karton": 7,
+          "invoiceDate": ""
         },
         {
           "cc": "917102100501264739",
-          "invoice": 1623398.73
+          "invoiceNo": "26000300069-01",
+          "invoice": 1623398.73,
+          "karton": 7,
+          "invoiceDate": ""
         },
         {
           "cc": "917102100501264739",
-          "invoice": 1013385.42
+          "invoiceNo": "26000300070-01",
+          "invoice": 1013385.42,
+          "karton": 5,
+          "invoiceDate": ""
         },
         {
           "cc": "917102100501264739",
-          "invoice": 2929047.16
+          "invoiceNo": "26000300071-01",
+          "invoice": 2929047.16,
+          "karton": 12,
+          "invoiceDate": ""
         },
         {
           "cc": "917102100501264739",
-          "invoice": 6959378.56
+          "invoiceNo": "26000300072-01",
+          "invoice": 6959378.56,
+          "karton": 28,
+          "invoiceDate": ""
         },
         {
           "cc": "917102100501264739",
-          "invoice": 18034296.34
+          "invoiceNo": "26000300073-01",
+          "invoice": 18034296.34,
+          "karton": 73,
+          "invoiceDate": ""
         },
         {
           "cc": "917102100501264739",
-          "invoice": 839722.46
+          "invoiceNo": "26000300074-01",
+          "invoice": 839722.46,
+          "karton": 4,
+          "invoiceDate": ""
         },
         {
           "cc": "917102100501264739",
-          "invoice": 717266.97
+          "invoiceNo": "26000300075-01",
+          "invoice": 717266.97,
+          "karton": 3,
+          "invoiceDate": ""
         },
         {
           "cc": "917102100501264739",
-          "invoice": 2557010.18
+          "invoiceNo": "26000300076-01",
+          "invoice": 2557010.18,
+          "karton": 11,
+          "invoiceDate": ""
         },
         {
           "cc": "917102100501264739",
-          "invoice": 2080617.61
+          "invoiceNo": "26000300077-01",
+          "invoice": 2080617.61,
+          "karton": 9,
+          "invoiceDate": ""
         }
       ]
     },
     {
-      "id": 2,
-      "name": "Mobil 2",
-      "total": 12192923.76,
+      "id": "t2",
+      "name": "Traga 2",
+      "capacity": 250,
+      "hex": "#B03A5B",
+      "total": 41811076.41,
+      "kartonUsed": 174,
       "stops": [
         {
-          "cc": "917102100501455214",
-          "invoice": 103296.6
-        },
-        {
-          "cc": "917102001100864377",
-          "invoice": 3508647.84
-        },
-        {
-          "cc": "917102100100864332",
-          "invoice": 688670.64
-        },
-        {
-          "cc": "917102100100864332",
-          "invoice": 123156.72
+          "cc": "917102300501227005",
+          "invoiceNo": "26000500037-01",
+          "invoice": 835150.68,
+          "karton": 4,
+          "invoiceDate": ""
         },
         {
           "cc": "917102200501093070",
-          "invoice": 1244194.56
-        },
-        {
-          "cc": "917102200200864619",
-          "invoice": 641118.24
-        },
-        {
-          "cc": "917102300400864472",
-          "invoice": 378749.76
-        },
-        {
-          "cc": "917102300200864262",
-          "invoice": 1209828.96
+          "invoiceNo": "26000800041-01",
+          "invoice": 1244194.56,
+          "karton": 5,
+          "invoiceDate": ""
         },
         {
           "cc": "917102600301346806",
-          "invoice": 1548050.4
-        },
-        {
-          "cc": "917102300501439804",
-          "invoice": 1912059.36
-        },
-        {
-          "cc": "917102300501227005",
-          "invoice": 835150.68
-        }
-      ]
-    },
-    {
-      "id": 3,
-      "name": "Mobil 3",
-      "total": 31486877.589999996,
-      "stops": [
-        {
-          "cc": "917102100400864450",
-          "invoice": 11788955.91
-        },
-        {
-          "cc": "917102001401316046",
-          "invoice": 743433.6
+          "invoiceNo": "26000500038-01",
+          "invoice": 1548050.4,
+          "karton": 7,
+          "invoiceDate": ""
         },
         {
           "cc": "917102001401397573",
-          "invoice": 299793.24
+          "invoiceNo": "26000600027-01",
+          "invoice": 299793.24,
+          "karton": 2,
+          "invoiceDate": ""
         },
         {
           "cc": "917102001100864369",
-          "invoice": 1926771.3
-        },
-        {
-          "cc": "917102100400864272",
-          "invoice": 352940.04
-        },
-        {
-          "cc": "917102001101446291",
-          "invoice": 1206126
-        },
-        {
-          "cc": "917102001301397585",
-          "invoice": 653452.56
+          "invoiceNo": "26000600028-01",
+          "invoice": 1926771.3,
+          "karton": 8,
+          "invoiceDate": ""
         },
         {
           "cc": "917102000300996471",
-          "invoice": 1977739.62
-        },
-        {
-          "cc": "917102100901311642",
-          "invoice": 641817.54
-        },
-        {
-          "cc": "917102001000864098",
-          "invoice": 1343024.5
+          "invoiceNo": "26000100070-01",
+          "invoice": 1977739.62,
+          "karton": 8,
+          "invoiceDate": ""
         },
         {
           "cc": "910717000500863710",
-          "invoice": 228771
+          "invoiceNo": "26000400086-01",
+          "invoice": 228771,
+          "karton": 1,
+          "invoiceDate": ""
         },
         {
           "cc": "910717000100863869",
-          "invoice": 4614540.84
+          "invoiceNo": "26000900048-01",
+          "invoice": 4614540.84,
+          "karton": 19,
+          "invoiceDate": ""
         },
         {
           "cc": "910717000100863869",
-          "invoice": 5052395.88
+          "invoiceNo": "26000900049-01",
+          "invoice": 5052395.88,
+          "karton": 21,
+          "invoiceDate": ""
         },
         {
-          "cc": "910717100300863908",
-          "invoice": 657115.56
+          "cc": "910717100100863875",
+          "invoiceNo": "26000900051-01",
+          "invoice": 622097.28,
+          "karton": 3,
+          "invoiceDate": ""
+        },
+        {
+          "cc": "910712100400863879",
+          "invoiceNo": "26000900055-01",
+          "invoice": 798374.16,
+          "karton": 4,
+          "invoiceDate": ""
+        },
+        {
+          "cc": "910607001801459834",
+          "invoiceNo": "26000900047-01",
+          "invoice": 20751138.09,
+          "karton": 84,
+          "invoiceDate": ""
+        },
+        {
+          "cc": "917102300501439804",
+          "invoiceNo": "26000100069-01",
+          "invoice": 1912059.36,
+          "karton": 8,
+          "invoiceDate": ""
         }
       ]
     },
     {
-      "id": 4,
-      "name": "Mobil 4",
-      "total": 40224528.54,
+      "id": "t3",
+      "name": "Traga 3",
+      "capacity": 250,
+      "hex": "#7B1FA2",
+      "total": 20593280.55,
+      "kartonUsed": 86,
       "stops": [
         {
-          "cc": "910717000601457234",
-          "invoice": 1244194.56
+          "cc": "917102100501455214",
+          "invoiceNo": "26001000066-01",
+          "invoice": 103296.6,
+          "karton": 1,
+          "invoiceDate": ""
         },
         {
-          "cc": "910717100100863932",
-          "invoice": 1228227.21
+          "cc": "917102100100864332",
+          "invoiceNo": "26001000065-01",
+          "invoice": 688670.64,
+          "karton": 3,
+          "invoiceDate": ""
+        },
+        {
+          "cc": "917102100100864332",
+          "invoiceNo": "26001100061-01",
+          "invoice": 123156.72,
+          "karton": 1,
+          "invoiceDate": ""
+        },
+        {
+          "cc": "917102200200864619",
+          "invoiceNo": "26000200062-01",
+          "invoice": 641118.24,
+          "karton": 3,
+          "invoiceDate": ""
+        },
+        {
+          "cc": "917102300400864472",
+          "invoiceNo": "26VSMO00034-01",
+          "invoice": 378749.76,
+          "karton": 2,
+          "invoiceDate": ""
+        },
+        {
+          "cc": "917102300200864262",
+          "invoiceNo": "26000800042-01",
+          "invoice": 1209828.96,
+          "karton": 5,
+          "invoiceDate": ""
+        },
+        {
+          "cc": "917102100400864450",
+          "invoiceNo": "26VSMO00032-01",
+          "invoice": 11788955.91,
+          "karton": 48,
+          "invoiceDate": ""
         },
         {
           "cc": "910717100501027289",
-          "invoice": 950784.93
+          "invoiceNo": "26000400082-01",
+          "invoice": 950784.93,
+          "karton": 4,
+          "invoiceDate": ""
         },
         {
           "cc": "910717100100863867",
-          "invoice": 4708718.79
+          "invoiceNo": "26000900054-01",
+          "invoice": 4708718.79,
+          "karton": 19,
+          "invoiceDate": ""
+        }
+      ]
+    },
+    {
+      "id": "t4",
+      "name": "Traga 4",
+      "capacity": 250,
+      "hex": "#00838F",
+      "total": 21499972.93,
+      "kartonUsed": 92,
+      "stops": [
+        {
+          "cc": "917102001100864377",
+          "invoiceNo": "26000800040-01",
+          "invoice": 3508647.84,
+          "karton": 15,
+          "invoiceDate": ""
         },
         {
-          "cc": "910717100100863962",
-          "invoice": 384346.38
+          "cc": "917102001401316046",
+          "invoiceNo": "26VSMO00035-01",
+          "invoice": 743433.6,
+          "karton": 3,
+          "invoiceDate": ""
         },
         {
-          "cc": "910717100100863878",
-          "invoice": 5074733.52
+          "cc": "917102100400864272",
+          "invoiceNo": "26000500036-01",
+          "invoice": 352940.04,
+          "karton": 2,
+          "invoiceDate": ""
         },
         {
-          "cc": "910717100100863875",
-          "invoice": 622097.28
+          "cc": "917102001101446291",
+          "invoiceNo": "26000600030-01",
+          "invoice": 1206126,
+          "karton": 5,
+          "invoiceDate": ""
         },
         {
-          "cc": "910712100400863879",
-          "invoice": 798374.16
+          "cc": "917102001301397585",
+          "invoiceNo": "26000600031-01",
+          "invoice": 653452.56,
+          "karton": 3,
+          "invoiceDate": ""
         },
         {
-          "cc": "910607001801459834",
-          "invoice": 20751138.09
+          "cc": "917102100901311642",
+          "invoiceNo": "26000600029-01",
+          "invoice": 641817.54,
+          "karton": 3,
+          "invoiceDate": ""
         },
         {
-          "cc": "910717001400863837",
-          "invoice": 414118.8
+          "cc": "917102001000864098",
+          "invoiceNo": "26VSMO00033-01",
+          "invoice": 1343024.5,
+          "karton": 6,
+          "invoiceDate": ""
+        },
+        {
+          "cc": "910717100300863908",
+          "invoiceNo": "26000400085-01",
+          "invoice": 657115.56,
+          "karton": 3,
+          "invoiceDate": ""
         },
         {
           "cc": "910717100400863923",
-          "invoice": 4047794.82
+          "invoiceNo": "26000900050-01",
+          "invoice": 4047794.82,
+          "karton": 17,
+          "invoiceDate": ""
+        },
+        {
+          "cc": "910717001400863837",
+          "invoiceNo": "26000400084-01",
+          "invoice": 414118.8,
+          "karton": 2,
+          "invoiceDate": ""
+        },
+        {
+          "cc": "910717000601457234",
+          "invoiceNo": "26000400083-01",
+          "invoice": 1244194.56,
+          "karton": 5,
+          "invoiceDate": ""
+        },
+        {
+          "cc": "910717100100863932",
+          "invoiceNo": "26000900053-01",
+          "invoice": 1228227.21,
+          "karton": 5,
+          "invoiceDate": ""
+        },
+        {
+          "cc": "910717100100863962",
+          "invoiceNo": "26000400081-01",
+          "invoice": 384346.38,
+          "karton": 2,
+          "invoiceDate": ""
+        },
+        {
+          "cc": "910717100100863878",
+          "invoiceNo": "26000900052-01",
+          "invoice": 5074733.52,
+          "karton": 21,
+          "invoiceDate": ""
         }
       ]
     }
